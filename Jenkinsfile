@@ -1,13 +1,13 @@
 pipeline {
 
-/*     agent {
+    agent {
         docker { image 'maven:3.6.3-openjdk-8-slim' }
-    } */
+    }
 
     environment {
         PROJECT_REPOSITORY_DIRECTORY = "eCommerce"
         APPLICATION_WAR_FILE = "target/ecommerce-0.0.1.war"
-        APPLICATION_CONTEXT = "$WORKSPACE/$PROJECT_REPOSITORY_DIRECTORY"
+        APPLICATION_CONTEXT = "${env.WORKSPACE}/${PROJECT_REPOSITORY_DIRECTORY}"
     }
 
     options {
@@ -17,58 +17,37 @@ pipeline {
 
     stages {
 
-        stage ('SCM Checkout') {
-
+        stage('SCM Checkout') {
             steps {
                 checkout scm
             }
-
         }
 
-        stage ('Build') {
-
+        stage('Build') {
             steps {
-
-                script {
-                    sh 'cd $APPLICATION_CONTEXT && mvn -B -DskipTests clean package'
-                }
-
+                sh "cd ${env.APPLICATION_CONTEXT} && mvn -B -DskipTests clean package"
             }
-
         }
 
-        stage ('Test') {
-
+        stage('Test') {
             steps {
-
-                script {
-                    sh 'cd $APPLICATION_CONTEXT && mvn clean test cobertura:cobertura -Dcobertura.report.format=xml'
-                }
-
+                sh "cd ${env.APPLICATION_CONTEXT} && mvn clean test cobertura:cobertura -Dcobertura.report.format=xml"
             }
-
             post {
                 always {
-                    junit '**/target/*-reports/TEST-*.xml'
-                    step([$class: 'CoberturaPublisher', coberturaReportFile: 'eCommerce/target/site/cobertura/coverage.xml'])
+                    junit '**/target/surefire-reports/TEST-*.xml'
+                    step([$class: 'CoberturaPublisher', coberturaReportFile: '**/target/site/cobertura/coverage.xml'])
                 }
             }
-
         }
 
-        stage ('Deploy') {
-
+        stage('Deploy') {
             steps {
-
                 script {
-
                     def deploy_application = false
-
                     try {
-
                         echo 'Wait 5 minutes for the answer.'
                         timeout(time: 5, unit: 'MINUTES') {
-
                             deploy_application = input id: 'deploy_application',
                                 message: 'Deploy the new version of the application?',
                                 ok: 'Yes, deploy it.',
@@ -81,27 +60,25 @@ pipeline {
                                         name: 'I agree with it.'
                                     ]
                                 ]
-
                         }
-
                     } catch (error) {
-
-                        def user = error.getCauses()[0].getUser()
-                        if( 'SYSTEM' == user.toString() ) {
-                            // The constant SYSTEM means that the build was cancelled by timeout.
-                            echo 'No user interaction. Build timeout.'
-                            currentBuild.result = 'ABORTED'
+                        if (error.getCauses() && error.getCauses()[0].getUser()) {
+                            def user = error.getCauses()[0].getUser()
+                            if ('SYSTEM' == user.toString()) {
+                                echo 'No user interaction. Build timeout.'
+                                currentBuild.result = 'ABORTED'
+                                throw error
+                            }
+                        } else {
+                            echo 'Unknown error during deploy input.'
+                            currentBuild.result = 'UNSTABLE'
                             throw error
                         }
-                        currentBuild.result = 'UNSTABLE'
-
                     }
-                }   // Script
+                }
+            }
+        }
 
-            }       // Steps
+    }
 
-        } // Stage
-
-    }   // Stages
-
-}       // Pipeline
+}
