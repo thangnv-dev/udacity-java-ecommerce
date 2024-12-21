@@ -1,9 +1,4 @@
 pipeline {
-
-    agent {
-        docker { image 'maven:3.6.3-openjdk-8-slim' }
-    }
-
     environment {
         PROJECT_REPOSITORY_DIRECTORY = "eCommerce"
         APPLICATION_WAR_FILE = "target/ecommerce-0.0.1.war"
