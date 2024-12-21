@@ -1,8 +1,8 @@
 pipeline {
 
-    agent {
+/*     agent {
         docker { image 'maven:3.6.3-openjdk-8-slim' }
-    }
+    } */
 
     environment {
         PROJECT_REPOSITORY_DIRECTORY = "eCommerce"
@@ -96,20 +96,6 @@ pipeline {
                         currentBuild.result = 'UNSTABLE'
 
                     }
-
-                    if ( deploy_application == true ) {
-                        // Deploying the application
-                        sh 'cd $APPLICATION_CONTEXT && mvn clean package'
-
-                        deploy adapters: [
-                            tomcat9(url: 'http://udacity-tomcat:8080',
-                            credentialsId: 'tomcat')
-                        ],
-                            war: 'eCommerce/target/*.war',
-                            contextPath: '/'
-
-                    }
-
                 }   // Script
 
             }       // Steps
