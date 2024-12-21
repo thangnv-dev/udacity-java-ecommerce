@@ -1,4 +1,5 @@
 pipeline {
+    agent any
     environment {
         PROJECT_REPOSITORY_DIRECTORY = "eCommerce"
         APPLICATION_WAR_FILE = "target/ecommerce-0.0.1.war"
