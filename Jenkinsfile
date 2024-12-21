@@ -7,7 +7,7 @@ pipeline {
     environment {
         PROJECT_REPOSITORY_DIRECTORY = "eCommerce"
         APPLICATION_WAR_FILE = "target/ecommerce-0.0.1.war"
-        APPLICATION_CONTEXT = "${env.WORKSPACE}/${PROJECT_REPOSITORY_DIRECTORY}"
+        APPLICATION_CONTEXT = "D:\Udacity Java Fullstack Web developer\Project 004\eCommerce"
     }
 
     options {
